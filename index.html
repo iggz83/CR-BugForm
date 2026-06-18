@@ -161,7 +161,7 @@
       <div class="hint">When checked, a "could not recreate" note is added to the ticket automatically.</div>
     </fieldset>
 
-    <fieldset>
+    <fieldset id="providerFieldset">
       <legend class="toggle" data-target="providerBody"><input type="checkbox" class="checkbox-toggle" data-toggle /> Payment provider switch</legend>
       <div class="collapsible-body hidden" id="providerBody">
         <div class="row">
@@ -173,8 +173,10 @@
 
     <fieldset>
       <legend>Account Info</legend>
-      <label for="vipDue">Due date (VIP clients)</label>
-      <input type="date" id="vipDue" />
+      <div id="vipWrap">
+        <label for="vipDue">Due date (VIP clients)</label>
+        <input type="date" id="vipDue" />
+      </div>
       <label for="adminEmail">Admin email <span class="hint">(USER DATA side panel)</span></label>
       <input type="email" id="adminEmail" />
       <div class="row">
@@ -294,9 +296,12 @@
     });
   });
 
-  // Scope only matters for Bugs
-  function syncScope() {
-    $("scopeWrap").style.display = checked("ttype") === "Bug" ? "" : "none";
+  // Toggle type-specific fields. Scope is Bug-only; provider switch + VIP due date are Dev Task-only.
+  function syncType() {
+    var isBug = checked("ttype") === "Bug";
+    $("scopeWrap").style.display = isBug ? "" : "none";
+    $("providerFieldset").style.display = isBug ? "none" : "";
+    $("vipWrap").style.display = isBug ? "none" : "";
   }
 
   function build() {
@@ -316,14 +321,14 @@
       L.push("");
     }
 
-    if (isOpen("providerBody") && (val("curProvider") || val("newProvider"))) {
+    if (type === "Dev Task" && isOpen("providerBody") && (val("curProvider") || val("newProvider"))) {
       L.push("Provider Switch:");
       L.push("Current Provider: " + val("curProvider"));
       L.push("New Provider: " + val("newProvider"));
       L.push("");
     }
 
-    if (val("vipDue")) {
+    if (type === "Dev Task" && val("vipDue")) {
       // format YYYY-MM-DD -> M/D/YYYY
       var p = val("vipDue").split("-");
       var pretty = p.length === 3 ? (parseInt(p[1], 10) + "/" + parseInt(p[2], 10) + "/" + p[0]) : val("vipDue");
@@ -383,7 +388,7 @@
   }
 
   form.addEventListener("input", build);
-  form.addEventListener("change", function () { syncScope(); build(); });
+  form.addEventListener("change", function () { syncType(); build(); });
 
   $("copyBtn").addEventListener("click", function () {
     out.select();
@@ -401,11 +406,11 @@
   $("resetBtn").addEventListener("click", function () {
     form.reset();
     Array.prototype.forEach.call(document.querySelectorAll(".collapsible-body"), function (b) { b.classList.add("hidden"); });
-    syncScope();
+    syncType();
     build();
   });
 
-  syncScope();
+  syncType();
   build();
 })();
 </script>
