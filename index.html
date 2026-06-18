@@ -24,16 +24,24 @@
     background: linear-gradient(160deg, #0f172a, #1e293b);
     color: var(--ink);
     min-height: 100vh;
-    padding: 32px 16px;
+    padding: 18px 16px;
   }
   .wrap {
-    max-width: 1180px;
+    max-width: 1480px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 2fr 1fr;
     gap: 24px;
+    align-items: start;
   }
-  @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
+  /* Form fieldsets flow into two columns so the page fits without scrolling. */
+  .fieldcols { column-count: 2; column-gap: 18px; }
+  .fieldcols fieldset { break-inside: avoid; -webkit-column-break-inside: avoid; }
+  @media (max-width: 1100px) {
+    .wrap { grid-template-columns: 1fr; }
+    .fieldcols { column-count: 2; }
+  }
+  @media (max-width: 640px) { .fieldcols { column-count: 1; } }
   header.page {
     grid-column: 1 / -1;
     color: #fff;
@@ -59,8 +67,8 @@
   fieldset {
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    padding: 14px 16px 18px;
-    margin: 0 0 18px;
+    padding: 10px 14px 12px;
+    margin: 0 0 14px;
   }
   legend {
     font-weight: 600;
@@ -69,7 +77,7 @@
     padding: 0 6px;
   }
   legend.toggle { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 8px; }
-  label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 4px; color: var(--ink); }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 9px 0 4px; color: var(--ink); }
   label.inline { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; margin: 8px 0; cursor: pointer; }
   input[type="text"], input[type="email"], input[type="url"], input[type="date"], textarea, select {
     width: 100%;
@@ -136,6 +144,7 @@
   <form class="panel" id="form" autocomplete="off">
     <h2>Ticket Details</h2>
 
+    <div class="fieldcols">
     <fieldset>
       <legend>Type &amp; Scope</legend>
       <label>Ticket type</label>
@@ -252,6 +261,7 @@
         </div>
       </div>
     </fieldset>
+    </div>
 
     <div class="actions">
       <button type="button" class="btn-ghost" id="resetBtn">Reset</button>
