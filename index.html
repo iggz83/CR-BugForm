@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CR Bug / Dev Task Ticket Builder</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #ffffff;
+    --ink: #1e293b;
+    --muted: #64748b;
+    --line: #e2e8f0;
+    --brand: #1d6f42;
+    --brand-dark: #155233;
+    --accent: #2563eb;
+    --soft: #f1f5f9;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #0f172a, #1e293b);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 32px 16px;
+  }
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
+  header.page {
+    grid-column: 1 / -1;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  header.page h1 { margin: 0 0 4px; font-size: 22px; }
+  header.page p { margin: 0; color: #94a3b8; font-size: 14px; }
+  .panel {
+    background: var(--panel);
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  }
+  .panel h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--muted);
+    margin: 0 0 14px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 8px;
+  }
+  fieldset {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 16px 18px;
+    margin: 0 0 18px;
+  }
+  legend {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--brand-dark);
+    padding: 0 6px;
+  }
+  legend.toggle { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 8px; }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 4px; color: var(--ink); }
+  label.inline { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; margin: 8px 0; cursor: pointer; }
+  input[type="text"], input[type="email"], input[type="url"], input[type="date"], textarea, select {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--ink);
+    background: #fff;
+  }
+  input:focus, textarea:focus, select:focus { outline: 2px solid var(--brand); outline-offset: 0; border-color: var(--brand); }
+  textarea { resize: vertical; min-height: 56px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 520px) { .row { grid-template-columns: 1fr; } }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-top: 4px; }
+  .seg label { margin: 0; cursor: pointer; }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg span { display: block; padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--muted); }
+  .seg input:checked + span { background: var(--brand); color: #fff; }
+  .hint { font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 3px; }
+  .collapsible-body { margin-top: 10px; }
+  .collapsible-body.hidden { display: none; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  button {
+    border: none;
+    border-radius: 8px;
+    padding: 11px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary { background: var(--brand); color: #fff; }
+  .btn-primary:hover { background: var(--brand-dark); }
+  .btn-ghost { background: var(--soft); color: var(--ink); }
+  .btn-ghost:hover { background: #e2e8f0; }
+  .output-head { display: flex; justify-content: space-between; align-items: center; }
+  #copyBtn.copied { background: var(--accent); color: #fff; }
+  #output {
+    width: 100%;
+    min-height: 460px;
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    background: #0f172a;
+    color: #e2e8f0;
+    border: none;
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .checkbox-toggle { accent-color: var(--brand); width: 16px; height: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page">
+    <h1>🐛 Bug / Dev Task Ticket Builder</h1>
+    <p>Fill in what's relevant, then copy the formatted text into the Intercom ticket. Empty sections are left out automatically.</p>
+  </header>
+
+  <!-- ============ FORM ============ -->
+  <form class="panel" id="form" autocomplete="off">
+    <h2>Ticket Details</h2>
+
+    <fieldset>
+      <legend>Type &amp; Scope</legend>
+      <label>Ticket type</label>
+      <div class="seg" role="radiogroup">
+        <label><input type="radio" name="ttype" value="Dev Task" checked /><span>Dev Task</span></label>
+        <label><input type="radio" name="ttype" value="Bug" /><span>Bug</span></label>
+      </div>
+      <div id="scopeWrap">
+        <label>Scope</label>
+        <div class="seg" role="radiogroup">
+          <label><input type="radio" name="scope" value="Isolated" checked /><span>Isolated</span></label>
+          <label><input type="radio" name="scope" value="Global Bug" /><span>Global Bug</span></label>
+        </div>
+        <div class="hint">Use <strong>Global Bug</strong> if confirmed in ALL clubs (e.g. recreated on your own account).</div>
+      </div>
+
+      <label for="desc">Description (1–2 sentences)</label>
+      <textarea id="desc" placeholder="Brief description of the issue."></textarea>
+    </fieldset>
+
+    <fieldset>
+      <legend class="toggle" data-target="recreateBody"><input type="checkbox" class="checkbox-toggle" data-toggle /> Could not recreate</legend>
+      <div class="collapsible-body hidden" id="recreateBody">
+        <label for="recreateNote">Recreation note</label>
+        <textarea id="recreateNote" placeholder="We were not able to recreate the issue because…"></textarea>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="toggle" data-target="providerBody"><input type="checkbox" class="checkbox-toggle" data-toggle /> Payment provider switch</legend>
+      <div class="collapsible-body hidden" id="providerBody">
+        <div class="row">
+          <div><label for="curProvider">Current provider</label><input type="text" id="curProvider" /></div>
+          <div><label for="newProvider">New provider</label><input type="text" id="newProvider" /></div>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Account Info</legend>
+      <label for="vipDue">Due date (VIP clients)</label>
+      <input type="date" id="vipDue" />
+      <label for="adminEmail">Admin email <span class="hint">(USER DATA side panel)</span></label>
+      <input type="email" id="adminEmail" />
+      <div class="row">
+        <div><label for="entId">Enterprise ID</label><input type="text" id="entId" /></div>
+        <div><label for="orgId">Org ID</label><input type="text" id="orgId" /></div>
+      </div>
+      <label for="addlInfo">Additional info</label>
+      <textarea id="addlInfo" placeholder="Anything else relevant. Remember to attach FULL SCREEN screenshots in the ticket."></textarea>
+    </fieldset>
+
+    <fieldset>
+      <legend class="toggle" data-target="deviceBody"><input type="checkbox" class="checkbox-toggle" data-toggle /> Phone / iPad issue</legend>
+      <div class="collapsible-body hidden" id="deviceBody">
+        <div class="row">
+          <div><label for="deviceModel">Device model</label><input type="text" id="deviceModel" placeholder="e.g. iPhone 14 Pro" /></div>
+          <div><label for="deviceOS">Software version</label><input type="text" id="deviceOS" placeholder="e.g. iOS 17.4" /></div>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="toggle" data-target="memberBody"><input type="checkbox" class="checkbox-toggle" data-toggle /> Member</legend>
+      <div class="collapsible-body hidden" id="memberBody">
+        <div class="row">
+          <div><label for="memberName">Member name</label><input type="text" id="memberName" placeholder="Brenda McDonald" /></div>
+          <div><label for="memberId">Member ID #</label><input type="text" id="memberId" placeholder="5555" /></div>
+        </div>
+        <label for="memberLogin">Login email / username</label>
+        <input type="text" id="memberLogin" placeholder="Brenda.McDonald.LPTC" />
+        <label for="memberUrl">Member detail screen URL</label>
+        <input type="url" id="memberUrl" placeholder="https://app.courtreserve.com/Member/Details?omId=…" />
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="toggle" data-target="eventBody"><input type="checkbox" class="checkbox-toggle" data-toggle /> Event</legend>
+      <div class="collapsible-body hidden" id="eventBody">
+        <div class="row">
+          <div><label for="eventName">Event name</label><input type="text" id="eventName" /></div>
+          <div><label for="eventId">Event ID #</label><input type="text" id="eventId" /></div>
+        </div>
+        <label for="eventDate">Date &amp; time</label>
+        <input type="text" id="eventDate" placeholder="e.g. 6/20/2026 5:00 PM" />
+        <label for="eventRecur">Recurrence rule &amp; day(s) <span class="hint">(when applicable)</span></label>
+        <input type="text" id="eventRecur" />
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="toggle" data-target="resBody"><input type="checkbox" class="checkbox-toggle" data-toggle /> Reservation / Lesson</legend>
+      <div class="collapsible-body hidden" id="resBody">
+        <label for="resPlayers">Booked players <span class="hint">(name(s) or note screenshot in ticket)</span></label>
+        <input type="text" id="resPlayers" />
+        <div class="row">
+          <div><label for="resType">Reservation / lesson type</label><input type="text" id="resType" /></div>
+          <div><label for="resDate">Date / time</label><input type="text" id="resDate" /></div>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="toggle" data-target="leagueBody"><input type="checkbox" class="checkbox-toggle" data-toggle /> League</legend>
+      <div class="collapsible-body hidden" id="leagueBody">
+        <div class="row">
+          <div><label for="leagueId">League ID</label><input type="text" id="leagueId" /></div>
+          <div><label for="sessionId">Session ID</label><input type="text" id="sessionId" /></div>
+        </div>
+        <label for="leagueUrl">Link to the league session</label>
+        <input type="url" id="leagueUrl" />
+        <div class="row">
+          <div><label for="gameDay">Game day date <span class="hint">(when applicable)</span></label><input type="text" id="gameDay" /></div>
+          <div><label for="matchPlayers">Match players <span class="hint">(when applicable)</span></label><input type="text" id="matchPlayers" /></div>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="actions">
+      <button type="button" class="btn-ghost" id="resetBtn">Reset</button>
+    </div>
+  </form>
+
+  <!-- ============ OUTPUT ============ -->
+  <div class="panel">
+    <div class="output-head">
+      <h2 style="border:none; margin:0;">Formatted Ticket</h2>
+      <button type="button" class="btn-primary" id="copyBtn">Copy</button>
+    </div>
+    <textarea id="output" readonly spellcheck="false"></textarea>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var form = $("form");
+  var out = $("output");
+
+  function val(id) { return ($(id).value || "").trim(); }
+  function checked(name) {
+    var el = form.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : "";
+  }
+  function isOpen(bodyId) { return !$(bodyId).classList.contains("hidden"); }
+
+  // Collapsible sections driven by their legend checkbox
+  Array.prototype.forEach.call(document.querySelectorAll("legend.toggle"), function (legend) {
+    var body = $(legend.getAttribute("data-target"));
+    var box = legend.querySelector("[data-toggle]");
+    function sync() {
+      body.classList.toggle("hidden", !box.checked);
+      build();
+    }
+    box.addEventListener("change", sync);
+    legend.addEventListener("click", function (e) {
+      if (e.target !== box) { box.checked = !box.checked; sync(); }
+    });
+  });
+
+  // Scope only matters for Bugs
+  function syncScope() {
+    $("scopeWrap").style.display = checked("ttype") === "Bug" ? "" : "none";
+  }
+
+  function build() {
+    var L = [];
+    var type = checked("ttype");
+    var header = type;
+    if (type === "Bug") {
+      var scope = checked("scope");
+      header = (scope === "Global Bug") ? "Global Bug" : "Bug (Isolated)";
+    }
+    var desc = val("desc") || "One to Two Sentence Description of the issue.";
+    L.push(header + ": " + desc);
+    L.push("");
+
+    if (isOpen("recreateBody") && val("recreateNote")) {
+      L.push(val("recreateNote"));
+      L.push("");
+    }
+
+    if (isOpen("providerBody") && (val("curProvider") || val("newProvider"))) {
+      L.push("Provider Switch:");
+      L.push("Current Provider: " + val("curProvider"));
+      L.push("New Provider: " + val("newProvider"));
+      L.push("");
+    }
+
+    if (val("vipDue")) {
+      // format YYYY-MM-DD -> M/D/YYYY
+      var p = val("vipDue").split("-");
+      var pretty = p.length === 3 ? (parseInt(p[1], 10) + "/" + parseInt(p[2], 10) + "/" + p[0]) : val("vipDue");
+      L.push("Dev Task Due Date (VIP Client): " + pretty);
+    }
+
+    L.push("Admin Email: " + val("adminEmail"));
+    L.push("Enterprise ID: " + val("entId") + "   Org ID: " + val("orgId"));
+    L.push("");
+
+    L.push("Additional Info:");
+    if (val("addlInfo")) L.push(val("addlInfo"));
+    if (isOpen("deviceBody") && (val("deviceModel") || val("deviceOS"))) {
+      L.push("Device: " + [val("deviceModel"), val("deviceOS")].filter(Boolean).join(" — "));
+    }
+    L.push("");
+
+    if (isOpen("memberBody")) {
+      L.push("MEMBER");
+      var mLine = [val("memberName"), val("memberId") ? "#" + val("memberId") : ""].filter(Boolean).join(" ");
+      if (mLine) L.push(mLine);
+      if (val("memberLogin")) L.push("Username: " + val("memberLogin"));
+      if (val("memberUrl")) L.push(val("memberUrl"));
+      L.push("");
+    }
+
+    if (isOpen("eventBody")) {
+      L.push("EVENT");
+      if (val("eventName")) L.push("Event Name: " + val("eventName"));
+      if (val("eventId")) L.push("Event ID: " + val("eventId"));
+      if (val("eventDate")) L.push("Date/Time: " + val("eventDate"));
+      if (val("eventRecur")) L.push("Recurrence: " + val("eventRecur"));
+      L.push("");
+    }
+
+    if (isOpen("resBody")) {
+      L.push("RESERVATION / LESSON");
+      if (val("resPlayers")) L.push("Players: " + val("resPlayers"));
+      if (val("resType")) L.push("Type: " + val("resType"));
+      if (val("resDate")) L.push("Date/Time: " + val("resDate"));
+      L.push("");
+    }
+
+    if (isOpen("leagueBody")) {
+      L.push("LEAGUE");
+      if (val("leagueId")) L.push("League ID: " + val("leagueId"));
+      if (val("sessionId")) L.push("Session ID: " + val("sessionId"));
+      if (val("leagueUrl")) L.push("Session Link: " + val("leagueUrl"));
+      if (val("gameDay")) L.push("Game Day Date: " + val("gameDay"));
+      if (val("matchPlayers")) L.push("Match Players: " + val("matchPlayers"));
+      L.push("");
+    }
+
+    // collapse trailing blank lines
+    while (L.length && L[L.length - 1] === "") L.pop();
+    out.value = L.join("\n");
+  }
+
+  form.addEventListener("input", build);
+  form.addEventListener("change", function () { syncScope(); build(); });
+
+  $("copyBtn").addEventListener("click", function () {
+    out.select();
+    var done = function () {
+      var b = $("copyBtn");
+      b.classList.add("copied");
+      b.textContent = "Copied!";
+      setTimeout(function () { b.classList.remove("copied"); b.textContent = "Copy"; }, 1500);
+    };
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(out.value).then(done, function () { document.execCommand("copy"); done(); });
+    } else { document.execCommand("copy"); done(); }
+  });
+
+  $("resetBtn").addEventListener("click", function () {
+    form.reset();
+    Array.prototype.forEach.call(document.querySelectorAll(".collapsible-body"), function (b) { b.classList.add("hidden"); });
+    syncScope();
+    build();
+  });
+
+  syncScope();
+  build();
+})();
+</script>
+</body>
+</html>
