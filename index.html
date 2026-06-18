@@ -140,8 +140,8 @@
       <legend>Type &amp; Scope</legend>
       <label>Ticket type</label>
       <div class="seg" role="radiogroup">
-        <label><input type="radio" name="ttype" value="Dev Task" checked /><span>Dev Task</span></label>
-        <label><input type="radio" name="ttype" value="Bug" /><span>Bug</span></label>
+        <label><input type="radio" name="ttype" value="Bug" checked /><span>Bug</span></label>
+        <label><input type="radio" name="ttype" value="Dev Task" /><span>Dev Task</span></label>
       </div>
       <div id="scopeWrap">
         <label>Scope</label>
@@ -157,11 +157,8 @@
     </fieldset>
 
     <fieldset>
-      <legend class="toggle" data-target="recreateBody"><input type="checkbox" class="checkbox-toggle" data-toggle /> Could not recreate</legend>
-      <div class="collapsible-body hidden" id="recreateBody">
-        <label for="recreateNote">Recreation note</label>
-        <textarea id="recreateNote" placeholder="We were not able to recreate the issue because…"></textarea>
-      </div>
+      <legend><label class="inline" style="margin:0;"><input type="checkbox" class="checkbox-toggle" id="recreateFlag" /> Could not recreate</label></legend>
+      <div class="hint">When checked, a "could not recreate" note is added to the ticket automatically.</div>
     </fieldset>
 
     <fieldset>
@@ -314,8 +311,8 @@
     L.push(header + ": " + desc);
     L.push("");
 
-    if (isOpen("recreateBody") && val("recreateNote")) {
-      L.push(val("recreateNote"));
+    if ($("recreateFlag").checked) {
+      L.push("We were not able to recreate the issue.");
       L.push("");
     }
 
