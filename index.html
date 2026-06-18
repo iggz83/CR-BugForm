@@ -276,6 +276,12 @@
   var out = $("output");
 
   function val(id) { return ($(id).value || "").trim(); }
+  // Lines that start with "-" become "•" bullets (indentation preserved).
+  function bullets(text) {
+    return text.split("\n").map(function (line) {
+      return line.replace(/^(\s*)-\s?/, "$1• ");
+    }).join("\n");
+  }
   function checked(name) {
     var el = form.querySelector('input[name="' + name + '"]:checked');
     return el ? el.value : "";
@@ -312,7 +318,7 @@
       var scope = checked("scope");
       header = (scope === "Global Bug") ? "Global Bug" : "Bug (Isolated)";
     }
-    var desc = val("desc") || "One to Two Sentence Description of the issue.";
+    var desc = val("desc") ? bullets(val("desc")) : "One to Two Sentence Description of the issue.";
     L.push(header + ": " + desc);
     L.push("");
 
@@ -340,7 +346,7 @@
     L.push("");
 
     L.push("Additional Info:");
-    if (val("addlInfo")) L.push(val("addlInfo"));
+    if (val("addlInfo")) L.push(bullets(val("addlInfo")));
     if (isOpen("deviceBody") && (val("deviceModel") || val("deviceOS"))) {
       L.push("Device: " + [val("deviceModel"), val("deviceOS")].filter(Boolean).join(" — "));
     }
