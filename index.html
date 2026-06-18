@@ -397,16 +397,24 @@
   form.addEventListener("change", function () { syncType(); build(); });
 
   $("copyBtn").addEventListener("click", function () {
-    out.select();
     var done = function () {
       var b = $("copyBtn");
       b.classList.add("copied");
       b.textContent = "Copied!";
       setTimeout(function () { b.classList.remove("copied"); b.textContent = "Copy"; }, 1500);
     };
+    // Fallback for browsers without the async clipboard API: select, copy, then
+    // immediately clear the selection so the textarea never looks highlighted.
+    var fallback = function () {
+      out.select();
+      document.execCommand("copy");
+      out.setSelectionRange(0, 0);
+      out.blur();
+      done();
+    };
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(out.value).then(done, function () { document.execCommand("copy"); done(); });
-    } else { document.execCommand("copy"); done(); }
+      navigator.clipboard.writeText(out.value).then(done, fallback);
+    } else { fallback(); }
   });
 
   $("resetBtn").addEventListener("click", function () {
