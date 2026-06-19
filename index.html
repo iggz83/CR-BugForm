@@ -24,7 +24,7 @@
     background: linear-gradient(160deg, #0f172a, #1e293b);
     color: var(--ink);
     min-height: 100vh;
-    padding: 18px 16px;
+    padding: 14px 16px;
   }
   .wrap {
     max-width: 1480px;
@@ -34,14 +34,10 @@
     gap: 24px;
     align-items: start;
   }
-  /* Form fieldsets flow into two columns so the page fits without scrolling. */
-  .fieldcols { column-count: 2; column-gap: 18px; }
-  .fieldcols fieldset { break-inside: avoid; -webkit-column-break-inside: avoid; }
-  @media (max-width: 1100px) {
-    .wrap { grid-template-columns: 1fr; }
-    .fieldcols { column-count: 2; }
-  }
-  @media (max-width: 640px) { .fieldcols { column-count: 1; } }
+  /* Form fieldsets split into two explicit columns so the page fits without scrolling. */
+  .fieldcols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; align-items: start; }
+  @media (max-width: 1100px) { .wrap { grid-template-columns: 1fr; } }
+  @media (max-width: 640px) { .fieldcols { grid-template-columns: 1fr; } }
   header.page {
     grid-column: 1 / -1;
     color: #fff;
@@ -67,8 +63,8 @@
   fieldset {
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    padding: 10px 14px 12px;
-    margin: 0 0 14px;
+    padding: 8px 12px 10px;
+    margin: 0 0 10px;
   }
   legend {
     font-weight: 600;
@@ -77,7 +73,7 @@
     padding: 0 6px;
   }
   legend.toggle { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 8px; }
-  label { display: block; font-size: 13px; font-weight: 600; margin: 9px 0 4px; color: var(--ink); }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 6px 0 3px; color: var(--ink); }
   label.inline { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; margin: 8px 0; cursor: pointer; }
   input[type="text"], input[type="email"], input[type="url"], input[type="date"], textarea, select {
     width: 100%;
@@ -90,7 +86,7 @@
     background: #fff;
   }
   input:focus, textarea:focus, select:focus { outline: 2px solid var(--brand); outline-offset: 0; border-color: var(--brand); }
-  textarea { resize: vertical; min-height: 56px; }
+  textarea { resize: vertical; min-height: 44px; }
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   @media (max-width: 520px) { .row { grid-template-columns: 1fr; } }
   .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-top: 4px; }
@@ -145,6 +141,7 @@
     <h2>Ticket Details</h2>
 
     <div class="fieldcols">
+    <div class="col">
     <fieldset>
       <legend>Type &amp; Scope</legend>
       <label>Ticket type</label>
@@ -170,16 +167,6 @@
       <div class="hint">When checked, a "could not recreate" note is added to the ticket automatically.</div>
     </fieldset>
 
-    <fieldset id="providerFieldset">
-      <legend class="toggle" data-target="providerBody"><input type="checkbox" class="checkbox-toggle" data-toggle /> Payment provider switch</legend>
-      <div class="collapsible-body hidden" id="providerBody">
-        <div class="row">
-          <div><label for="curProvider">Current provider</label><input type="text" id="curProvider" /></div>
-          <div><label for="newProvider">New provider</label><input type="text" id="newProvider" /></div>
-        </div>
-      </div>
-    </fieldset>
-
     <fieldset>
       <legend>Account Info</legend>
       <div id="vipWrap">
@@ -196,6 +183,18 @@
       <textarea id="addlInfo" placeholder="Anything else relevant. Remember to attach FULL SCREEN screenshots in the ticket."></textarea>
     </fieldset>
 
+    <fieldset id="providerFieldset">
+      <legend class="toggle" data-target="providerBody"><input type="checkbox" class="checkbox-toggle" data-toggle /> Payment provider switch</legend>
+      <div class="collapsible-body hidden" id="providerBody">
+        <div class="row">
+          <div><label for="curProvider">Current provider</label><input type="text" id="curProvider" /></div>
+          <div><label for="newProvider">New provider</label><input type="text" id="newProvider" /></div>
+        </div>
+      </div>
+    </fieldset>
+    </div>
+
+    <div class="col">
     <fieldset>
       <legend class="toggle" data-target="deviceBody"><input type="checkbox" class="checkbox-toggle" data-toggle /> Phone / iPad issue</legend>
       <div class="collapsible-body hidden" id="deviceBody">
@@ -261,6 +260,7 @@
         </div>
       </div>
     </fieldset>
+    </div>
     </div>
 
     <div class="actions">
