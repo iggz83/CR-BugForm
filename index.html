@@ -286,10 +286,11 @@
   var out = $("output");
 
   function val(id) { return ($(id).value || "").trim(); }
-  // Lines that start with "-" become "•" bullets (indentation preserved).
+  // Lines that start with "-" become indented "•" bullets (nested indentation preserved).
   function bullets(text) {
     return text.split("\n").map(function (line) {
-      return line.replace(/^(\s*)-\s?/, "$1• ");
+      var m = line.match(/^(\s*)-\s?(.*)$/);
+      return m ? "    " + m[1] + "• " + m[2] : line;
     }).join("\n");
   }
   function checked(name) {
@@ -322,6 +323,15 @@
 
   function build() {
     var L = [];
+    // Push a titled block only if it has at least one non-empty line; items
+    // that are empty/falsy are dropped so no orphaned captions appear.
+    function section(title, items) {
+      var present = items.filter(Boolean);
+      if (!present.length) return;
+      L.push(title);
+      present.forEach(function (i) { L.push(i); });
+      L.push("");
+    }
     var type = checked("ttype");
     var header = type;
     if (type === "Bug") {
@@ -337,11 +347,11 @@
       L.push("");
     }
 
-    if (type === "Dev Task" && isOpen("providerBody") && (val("curProvider") || val("newProvider"))) {
-      L.push("Provider Switch:");
-      L.push("Current Provider: " + val("curProvider"));
-      L.push("New Provider: " + val("newProvider"));
-      L.push("");
+    if (type === "Dev Task" && isOpen("providerBody")) {
+      section("Provider Switch:", [
+        val("curProvider") && "Current Provider: " + val("curProvider"),
+        val("newProvider") && "New Provider: " + val("newProvider")
+      ]);
     }
 
     if (type === "Dev Task" && val("vipDue")) {
@@ -351,51 +361,53 @@
       L.push("Dev Task Due Date (VIP Client): " + pretty);
     }
 
-    L.push("Admin Email: " + val("adminEmail"));
-    L.push("Enterprise ID: " + val("entId") + "   Org ID: " + val("orgId"));
-    L.push("");
+    if (val("adminEmail")) L.push("Admin Email: " + val("adminEmail"));
+    var ids = [];
+    if (val("entId")) ids.push("Enterprise ID: " + val("entId"));
+    if (val("orgId")) ids.push("Org ID: " + val("orgId"));
+    if (ids.length) L.push(ids.join("   "));
+    if (val("adminEmail") || ids.length) L.push("");
 
-    L.push("Additional Info:");
-    if (val("addlInfo")) L.push(bullets(val("addlInfo")));
-    if (isOpen("deviceBody") && (val("deviceModel") || val("deviceOS"))) {
-      L.push("Device: " + [val("deviceModel"), val("deviceOS")].filter(Boolean).join(" — "));
-    }
-    L.push("");
+    section("Additional Info:", [
+      val("addlInfo") && bullets(val("addlInfo")),
+      (isOpen("deviceBody") && (val("deviceModel") || val("deviceOS"))) &&
+        ("Device: " + [val("deviceModel"), val("deviceOS")].filter(Boolean).join(" — "))
+    ]);
 
     if (isOpen("memberBody")) {
-      L.push("MEMBER");
       var mLine = [val("memberName"), val("memberId") ? "#" + val("memberId") : ""].filter(Boolean).join(" ");
-      if (mLine) L.push(mLine);
-      if (val("memberLogin")) L.push("Username: " + val("memberLogin"));
-      if (val("memberUrl")) L.push(val("memberUrl"));
-      L.push("");
+      section("MEMBER", [
+        mLine,
+        val("memberLogin") && "Username: " + val("memberLogin"),
+        val("memberUrl")
+      ]);
     }
 
     if (isOpen("eventBody")) {
-      L.push("EVENT");
-      if (val("eventName")) L.push("Event Name: " + val("eventName"));
-      if (val("eventId")) L.push("Event ID: " + val("eventId"));
-      if (val("eventDate")) L.push("Date/Time: " + val("eventDate"));
-      if (val("eventRecur")) L.push("Recurrence: " + val("eventRecur"));
-      L.push("");
+      section("EVENT", [
+        val("eventName") && "Event Name: " + val("eventName"),
+        val("eventId") && "Event ID: " + val("eventId"),
+        val("eventDate") && "Date/Time: " + val("eventDate"),
+        val("eventRecur") && "Recurrence: " + val("eventRecur")
+      ]);
     }
 
     if (isOpen("resBody")) {
-      L.push("RESERVATION / LESSON");
-      if (val("resPlayers")) L.push("Players: " + val("resPlayers"));
-      if (val("resType")) L.push("Type: " + val("resType"));
-      if (val("resDate")) L.push("Date/Time: " + val("resDate"));
-      L.push("");
+      section("RESERVATION / LESSON", [
+        val("resPlayers") && "Players: " + val("resPlayers"),
+        val("resType") && "Type: " + val("resType"),
+        val("resDate") && "Date/Time: " + val("resDate")
+      ]);
     }
 
     if (isOpen("leagueBody")) {
-      L.push("LEAGUE");
-      if (val("leagueId")) L.push("League ID: " + val("leagueId"));
-      if (val("sessionId")) L.push("Session ID: " + val("sessionId"));
-      if (val("leagueUrl")) L.push("Session Link: " + val("leagueUrl"));
-      if (val("gameDay")) L.push("Game Day Date: " + val("gameDay"));
-      if (val("matchPlayers")) L.push("Match Players: " + val("matchPlayers"));
-      L.push("");
+      section("LEAGUE", [
+        val("leagueId") && "League ID: " + val("leagueId"),
+        val("sessionId") && "Session ID: " + val("sessionId"),
+        val("leagueUrl") && "Session Link: " + val("leagueUrl"),
+        val("gameDay") && "Game Day Date: " + val("gameDay"),
+        val("matchPlayers") && "Match Players: " + val("matchPlayers")
+      ]);
     }
 
     // collapse trailing blank lines
