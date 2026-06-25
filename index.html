@@ -287,13 +287,6 @@
   var out = $("output");
 
   function val(id) { return ($(id).value || "").trim(); }
-  // Lines that start with "-" become indented "•" bullets (nested indentation preserved).
-  function bullets(text) {
-    return text.split("\n").map(function (line) {
-      var m = line.match(/^(\s*)-\s?(.*)$/);
-      return m ? "    " + m[1] + "• " + m[2] : line;
-    }).join("\n");
-  }
   function checked(name) {
     var el = form.querySelector('input[name="' + name + '"]:checked');
     return el ? el.value : "";
@@ -339,7 +332,7 @@
       var scope = checked("scope");
       header = (scope === "Global Bug") ? "Global Bug" : "Bug (Isolated)";
     }
-    var desc = val("desc") ? bullets(val("desc")) : "One to Two Sentence Description of the issue.";
+    var desc = val("desc") || "One to Two Sentence Description of the issue.";
     L.push(header + ": " + desc);
     L.push("");
 
@@ -370,7 +363,7 @@
     if (val("adminEmail") || ids.length) L.push("");
 
     section("Additional Info:", [
-      val("addlInfo") && bullets(val("addlInfo")),
+      val("addlInfo") && val("addlInfo"),
       (isOpen("deviceBody") && (val("deviceModel") || val("deviceOS"))) &&
         ("Device: " + [val("deviceModel"), val("deviceOS")].filter(Boolean).join(" — "))
     ]);
