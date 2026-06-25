@@ -362,11 +362,13 @@
     if (ids.length) L.push(ids.join("   "));
     if (val("adminEmail") || ids.length) L.push("");
 
-    section("Additional Info:", [
-      val("addlInfo") && val("addlInfo"),
-      (isOpen("deviceBody") && (val("deviceModel") || val("deviceOS"))) &&
-        ("Device: " + [val("deviceModel"), val("deviceOS")].filter(Boolean).join(" — "))
-    ]);
+    // Additional Info header is always shown, even when blank.
+    L.push("Additional Info:");
+    if (val("addlInfo")) L.push(val("addlInfo"));
+    if (isOpen("deviceBody") && (val("deviceModel") || val("deviceOS"))) {
+      L.push("Device: " + [val("deviceModel"), val("deviceOS")].filter(Boolean).join(" — "));
+    }
+    L.push("");
 
     if (isOpen("memberBody")) {
       var mLine = [val("memberName"), val("memberId") ? "#" + val("memberId") : ""].filter(Boolean).join(" ");
