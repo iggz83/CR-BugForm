@@ -356,11 +356,10 @@
     }
 
     if (val("adminEmail")) L.push("Admin Email: " + val("adminEmail"));
-    var ids = [];
-    if (val("entId")) ids.push("Enterprise ID: " + val("entId"));
-    if (val("orgId")) ids.push("Org ID: " + val("orgId"));
-    if (ids.length) L.push(ids.join("   "));
-    if (val("adminEmail") || ids.length) L.push("");
+    var hasIds = false;
+    if (val("entId")) { L.push("Enterprise ID: " + val("entId")); hasIds = true; }
+    if (val("orgId")) { L.push("Org ID: " + val("orgId")); hasIds = true; }
+    if (val("adminEmail") || hasIds) L.push("");
 
     // Additional Info header is always shown, even when blank.
     L.push("Additional Info:");
