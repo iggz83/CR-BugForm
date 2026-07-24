@@ -285,8 +285,15 @@
 
     <fieldset>
       <legend>Relevant Information</legend>
-      <label for="escLocation">If an Enterprise, specify the location</label>
-      <input type="text" id="escLocation" />
+      <textarea id="escRelevant" placeholder="Relevant details for this escalation."></textarea>
+    </fieldset>
+
+    <fieldset>
+      <legend class="toggle" data-target="escEnterpriseBody"><input type="checkbox" class="checkbox-toggle" data-toggle /> If an Enterprise</legend>
+      <div class="collapsible-body hidden" id="escEnterpriseBody">
+        <label for="escLocation">Specify the location</label>
+        <input type="text" id="escLocation" />
+      </div>
     </fieldset>
 
     <fieldset>
@@ -432,8 +439,9 @@
       if (val("escIssues")) L.push(val("escIssues"));
       L.push("");
       L.push("RELEVANT INFORMATION:");
+      if (val("escRelevant")) L.push(val("escRelevant"));
       L.push("");
-      if (val("escLocation")) {
+      if (isOpen("escEnterpriseBody") && val("escLocation")) {
         L.push("If an Enterprise, SPECIFY THE LOCATION: " + val("escLocation"));
         L.push("");
       }
