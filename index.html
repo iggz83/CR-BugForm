@@ -160,6 +160,7 @@
         <div class="seg" role="radiogroup">
           <label><input type="radio" name="scope" value="Isolated" checked /><span>Isolated</span></label>
           <label><input type="radio" name="scope" value="Global Bug" /><span>Global Bug</span></label>
+          <label><input type="radio" name="scope" value="BXP" /><span>BXP</span></label>
         </div>
         <div class="hint">Use <strong>Global Bug</strong> if confirmed in ALL clubs (e.g. recreated on your own account).</div>
       </div>
@@ -476,7 +477,7 @@
     var header = type;
     if (type === "Bug") {
       var scope = checked("scope");
-      header = (scope === "Global Bug") ? "Global Bug" : "Bug (Isolated)";
+      header = (scope === "Isolated") ? "Bug (Isolated)" : scope;
     }
     var desc = val("desc") || "One to Two Sentence Description of the issue.";
     L.push(header + ": " + desc);
