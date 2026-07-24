@@ -111,6 +111,10 @@
   .btn-primary:hover { background: var(--brand-dark); }
   .btn-ghost { background: var(--soft); color: var(--ink); }
   .btn-ghost:hover { background: #e2e8f0; }
+  .form-head { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    flex-wrap: wrap; margin-bottom: 14px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+  .form-head h2 { border: none; margin: 0; padding: 0; }
+  .form-head .seg { margin-top: 0; }
   .output-head { display: flex; justify-content: space-between; align-items: center; }
   #copyBtn.copied { background: var(--accent); color: #fff; }
   #output {
@@ -138,17 +142,19 @@
 
   <!-- ============ FORM ============ -->
   <form class="panel" id="form" autocomplete="off">
-    <h2>Ticket Details</h2>
-
-    <div class="fieldcols">
-    <div class="col">
-    <fieldset>
-      <legend>Type &amp; Scope</legend>
-      <label>Ticket type</label>
+    <div class="form-head">
+      <h2>Ticket Details</h2>
       <div class="seg" role="radiogroup">
         <label><input type="radio" name="ttype" value="Bug" checked /><span>Bug</span></label>
         <label><input type="radio" name="ttype" value="Dev Task" /><span>Dev Task</span></label>
+        <label><input type="radio" name="ttype" value="Escalation" /><span>Escalation</span></label>
       </div>
+    </div>
+
+    <div class="fieldcols" id="standardFields">
+    <div class="col">
+    <fieldset>
+      <legend>Details</legend>
       <div id="scopeWrap">
         <label>Scope</label>
         <div class="seg" role="radiogroup">
@@ -264,6 +270,93 @@
     </div>
     </div>
 
+    <!-- ESCALATION fields (shown only when type = Escalation) -->
+    <div class="fieldcols" id="escalationFields" style="display:none">
+    <div class="col">
+    <fieldset>
+      <legend>Admin's Core Question</legend>
+      <textarea id="escCoreQ" placeholder="What is the admin fundamentally asking?"></textarea>
+    </fieldset>
+
+    <fieldset>
+      <legend>Issue(s) Found During Research</legend>
+      <textarea id="escIssues" placeholder="What you found while researching."></textarea>
+    </fieldset>
+
+    <fieldset>
+      <legend>Relevant Information</legend>
+      <label for="escLocation">If an Enterprise, specify the location</label>
+      <input type="text" id="escLocation" />
+    </fieldset>
+
+    <fieldset>
+      <legend>Additional Information</legend>
+      <textarea id="escAddl" placeholder="Note screenshots, videos, attachments, etc. (attach in ticket)."></textarea>
+    </fieldset>
+    </div>
+
+    <div class="col">
+    <fieldset>
+      <legend class="toggle" data-target="escMemberBody"><input type="checkbox" class="checkbox-toggle" data-toggle /> Member</legend>
+      <div class="collapsible-body hidden" id="escMemberBody">
+        <label for="escMemberName">Member name &amp; ID number</label>
+        <input type="text" id="escMemberName" placeholder="Brenda McDonald #5555" />
+        <label for="escMemberEmail">Member email / username</label>
+        <input type="text" id="escMemberEmail" />
+        <label for="escMemberUrl">Member profile URL</label>
+        <input type="url" id="escMemberUrl" />
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="toggle" data-target="escResBody"><input type="checkbox" class="checkbox-toggle" data-toggle /> Reservation</legend>
+      <div class="collapsible-body hidden" id="escResBody">
+        <div class="row">
+          <div><label for="escResType">Reservation type</label><input type="text" id="escResType" /></div>
+          <div><label for="escResCourt">Court</label><input type="text" id="escResCourt" /></div>
+        </div>
+        <div class="row">
+          <div><label for="escResDate">Date</label><input type="text" id="escResDate" /></div>
+          <div><label for="escResTime">Time</label><input type="text" id="escResTime" /></div>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="toggle" data-target="escEventBody"><input type="checkbox" class="checkbox-toggle" data-toggle /> Event</legend>
+      <div class="collapsible-body hidden" id="escEventBody">
+        <label for="escEventName">Event name &amp; ID</label>
+        <input type="text" id="escEventName" />
+        <div class="row">
+          <div><label for="escEventDate">Event date</label><input type="text" id="escEventDate" /></div>
+          <div><label for="escEventDates">Specific dates with issue</label><input type="text" id="escEventDates" /></div>
+        </div>
+        <label for="escEventUrl">Event general tab URL</label>
+        <input type="url" id="escEventUrl" />
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="toggle" data-target="escLeagueBody"><input type="checkbox" class="checkbox-toggle" data-toggle /> League</legend>
+      <div class="collapsible-body hidden" id="escLeagueBody">
+        <label for="escLeagueSession">League session ID</label>
+        <input type="text" id="escLeagueSession" />
+        <label for="escLeagueMatch">Match or game day with issue</label>
+        <input type="text" id="escLeagueMatch" />
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="toggle" data-target="escReportsBody"><input type="checkbox" class="checkbox-toggle" data-toggle /> Reports</legend>
+      <div class="collapsible-body hidden" id="escReportsBody">
+        <label for="escReportName">Name of report</label>
+        <input type="text" id="escReportName" />
+        <div class="hint">Also attach in ticket: screenshot of selected filter options, screenshot of relevant info, and exported file (when applicable).</div>
+      </div>
+    </fieldset>
+    </div>
+    </div>
+
     <div class="actions">
       <button type="button" class="btn-ghost" id="resetBtn">Reset</button>
     </div>
@@ -307,12 +400,15 @@
     });
   });
 
-  // Toggle type-specific fields. Scope is Bug-only; provider switch + VIP due date are Dev Task-only.
+  // Toggle which field set + type-specific fields are visible.
   function syncType() {
-    var isBug = checked("ttype") === "Bug";
-    $("scopeWrap").style.display = isBug ? "" : "none";
-    $("providerFieldset").style.display = isBug ? "none" : "";
-    $("vipWrap").style.display = isBug ? "none" : "";
+    var type = checked("ttype");
+    var isEsc = type === "Escalation";
+    $("standardFields").style.display = isEsc ? "none" : "";
+    $("escalationFields").style.display = isEsc ? "" : "none";
+    $("scopeWrap").style.display = (type === "Bug") ? "" : "none";
+    $("providerFieldset").style.display = (type === "Dev Task") ? "" : "none";
+    $("vipWrap").style.display = (type === "Dev Task") ? "" : "none";
   }
 
   function build() {
@@ -327,6 +423,48 @@
       L.push("");
     }
     var type = checked("ttype");
+
+    if (type === "Escalation") {
+      L.push("ADMIN'S CORE QUESTION:");
+      if (val("escCoreQ")) L.push(val("escCoreQ"));
+      L.push("");
+      L.push("ISSUE(S) FOUND DURING RESEARCH:");
+      if (val("escIssues")) L.push(val("escIssues"));
+      L.push("");
+      L.push("RELEVANT INFORMATION:");
+      L.push("");
+      if (val("escLocation")) {
+        L.push("If an Enterprise, SPECIFY THE LOCATION: " + val("escLocation"));
+        L.push("");
+      }
+      if (isOpen("escMemberBody")) section("Member:", [
+        val("escMemberName") && "Member Name & ID Number: " + val("escMemberName"),
+        val("escMemberEmail") && "Member Email/Username: " + val("escMemberEmail"),
+        val("escMemberUrl") && "Member Profile URL: " + val("escMemberUrl")
+      ]);
+      if (isOpen("escResBody")) section("Reservation:", [
+        val("escResType") && "Reservation Type: " + val("escResType"),
+        val("escResDate") && "Date: " + val("escResDate"),
+        val("escResTime") && "Time: " + val("escResTime"),
+        val("escResCourt") && "Court: " + val("escResCourt")
+      ]);
+      if (isOpen("escEventBody")) section("Event:", [
+        val("escEventName") && "Event Name & ID: " + val("escEventName"),
+        val("escEventDate") && "Event Date: " + val("escEventDate"),
+        val("escEventUrl") && "Event General Tab URL: " + val("escEventUrl"),
+        val("escEventDates") && "Specific Dates with Issue: " + val("escEventDates")
+      ]);
+      if (isOpen("escLeagueBody")) section("League:", [
+        val("escLeagueSession") && "League Session ID: " + val("escLeagueSession"),
+        val("escLeagueMatch") && "Match or Game Day with Issue: " + val("escLeagueMatch")
+      ]);
+      if (isOpen("escReportsBody")) section("Reports:", [
+        val("escReportName") && "Name of Report: " + val("escReportName")
+      ]);
+      L.push("ADDITIONAL INFORMATION: (screenshots, videos, attachments, etc.)");
+      if (val("escAddl")) L.push(val("escAddl"));
+      L.push("");
+    } else {
     var header = type;
     if (type === "Bug") {
       var scope = checked("scope");
@@ -403,6 +541,8 @@
         val("gameDay") && "Game Day Date: " + val("gameDay"),
         val("matchPlayers") && "Match Players: " + val("matchPlayers")
       ]);
+    }
+
     }
 
     // collapse trailing blank lines
