@@ -98,7 +98,6 @@
   .hint { font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 3px; }
   .collapsible-body { margin-top: 10px; }
   .collapsible-body.hidden { display: none; }
-  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
   button {
     border: none;
     border-radius: 8px;
@@ -116,6 +115,8 @@
     flex-wrap: wrap; margin-bottom: 14px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
   .form-head h2 { border: none; margin: 0; padding: 0; }
   .form-head .seg { margin-top: 0; }
+  .head-controls { display: flex; align-items: center; gap: 10px; }
+  .head-controls button { padding: 8px 14px; font-size: 13px; }
   .output-head { display: flex; justify-content: space-between; align-items: center; }
   #copyBtn.copied { background: var(--accent); color: #fff; }
   #output {
@@ -145,10 +146,13 @@
   <form class="panel" id="form" autocomplete="off">
     <div class="form-head">
       <h2>Ticket Details</h2>
+      <div class="head-controls">
+      <button type="button" class="btn-ghost" id="resetBtn">Reset</button>
       <div class="seg" role="radiogroup">
         <label><input type="radio" name="ttype" value="Bug" checked /><span>Bug</span></label>
         <label><input type="radio" name="ttype" value="Dev Task" /><span>Dev Task</span></label>
         <label><input type="radio" name="ttype" value="Escalation" /><span>Escalation</span></label>
+      </div>
       </div>
     </div>
 
@@ -393,10 +397,6 @@
       </div>
     </fieldset>
     </div>
-    </div>
-
-    <div class="actions">
-      <button type="button" class="btn-ghost" id="resetBtn">Reset</button>
     </div>
   </form>
 
