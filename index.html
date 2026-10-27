@@ -94,6 +94,7 @@
   .seg input { position: absolute; opacity: 0; pointer-events: none; }
   .seg span { display: block; padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--muted); }
   .seg input:checked + span { background: var(--brand); color: #fff; }
+  .yn { display: flex; flex-wrap: wrap; gap: 0 18px; }
   .hint { font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 3px; }
   .collapsible-body { margin-top: 10px; }
   .collapsible-body.hidden { display: none; }
@@ -167,6 +168,30 @@
 
       <label for="desc">Description (1–2 sentences)</label>
       <textarea id="desc" placeholder="Brief description of the issue."></textarea>
+
+      <div class="yn">
+        <div>
+          <label>Data correction needed</label>
+          <div class="seg" role="radiogroup">
+            <label><input type="radio" name="dataCorr" value="Yes" /><span>Yes</span></label>
+            <label><input type="radio" name="dataCorr" value="No" /><span>No</span></label>
+          </div>
+        </div>
+        <div>
+          <label>Repeatable issue</label>
+          <div class="seg" role="radiogroup">
+            <label><input type="radio" name="repeatable" value="Yes" /><span>Yes</span></label>
+            <label><input type="radio" name="repeatable" value="No" /><span>No</span></label>
+          </div>
+        </div>
+        <div>
+          <label>Repeatable in sandbox</label>
+          <div class="seg" role="radiogroup">
+            <label><input type="radio" name="repeatSandbox" value="Yes" /><span>Yes</span></label>
+            <label><input type="radio" name="repeatSandbox" value="No" /><span>No</span></label>
+          </div>
+        </div>
+      </div>
     </fieldset>
 
     <fieldset>
@@ -180,12 +205,17 @@
         <label for="vipDue">Due date (VIP clients)</label>
         <input type="date" id="vipDue" />
       </div>
+      <div class="row">
+        <div><label for="testedOrgId">Tested Org ID</label><input type="text" id="testedOrgId" /></div>
+        <div><label for="testedAdminEmail">Tested admin email</label><input type="email" id="testedAdminEmail" /></div>
+      </div>
       <label for="adminEmail">Admin email <span class="hint">(USER DATA side panel)</span></label>
       <input type="email" id="adminEmail" />
       <div class="row">
         <div><label for="entId">Enterprise ID</label><input type="text" id="entId" /></div>
         <div><label for="orgId">Org ID</label><input type="text" id="orgId" /></div>
       </div>
+      <div class="hint">Enterprise ID is a hidden item. See the CS Alerts doc shared on 7/27/26 for the full list.</div>
       <label for="addlInfo">Additional info</label>
       <textarea id="addlInfo" placeholder="Anything else relevant. Remember to attach FULL SCREEN screenshots in the ticket."></textarea>
     </fieldset>
@@ -426,7 +456,7 @@
     function section(title, items) {
       var present = items.filter(Boolean);
       if (!present.length) return;
-      L.push(title);
+      if (title) L.push(title);
       present.forEach(function (i) { L.push(i); });
       L.push("");
     }
@@ -500,7 +530,19 @@
       var p = val("vipDue").split("-");
       var pretty = p.length === 3 ? (parseInt(p[1], 10) + "/" + parseInt(p[2], 10) + "/" + p[0]) : val("vipDue");
       L.push("Dev Task Due Date (VIP Client): " + pretty);
+      L.push("");
     }
+
+    section("", [
+      checked("dataCorr") && "Data Correction needed: " + checked("dataCorr"),
+      checked("repeatable") && "Repeatable Issue: " + checked("repeatable"),
+      checked("repeatSandbox") && "Repeatable Issue in Sandbox: " + checked("repeatSandbox")
+    ]);
+
+    section("", [
+      val("testedOrgId") && "Tested Org ID: " + val("testedOrgId"),
+      val("testedAdminEmail") && "Tested Admin Email: " + val("testedAdminEmail")
+    ]);
 
     if (val("adminEmail")) L.push("Admin Email: " + val("adminEmail"));
     var hasIds = false;
