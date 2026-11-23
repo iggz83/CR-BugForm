@@ -94,7 +94,10 @@
   .seg input { position: absolute; opacity: 0; pointer-events: none; }
   .seg span { display: block; padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--muted); }
   .seg input:checked + span { background: var(--brand); color: #fff; }
-  .yn { display: flex; flex-wrap: wrap; gap: 0 18px; }
+  /* Keep the three required Yes/No questions on one row; wraps only on narrow screens. */
+  .yn { display: flex; flex-wrap: wrap; gap: 0 12px; }
+  .yn label { font-size: 12px; white-space: nowrap; }
+  .yn .seg span { padding: 7px 12px; }
   .req { color: #dc2626; }
   .seg.missing { border-color: #dc2626; box-shadow: 0 0 0 1px #dc2626; }
   .hint { font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 3px; }
