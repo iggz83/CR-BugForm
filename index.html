@@ -95,6 +95,8 @@
   .seg span { display: block; padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--muted); }
   .seg input:checked + span { background: var(--brand); color: #fff; }
   .yn { display: flex; flex-wrap: wrap; gap: 0 18px; }
+  .req { color: #dc2626; }
+  .seg.missing { border-color: #dc2626; box-shadow: 0 0 0 1px #dc2626; }
   .hint { font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 3px; }
   .collapsible-body { margin-top: 10px; }
   .collapsible-body.hidden { display: none; }
@@ -119,6 +121,7 @@
   .head-controls button { padding: 8px 14px; font-size: 13px; }
   .output-head { display: flex; justify-content: space-between; align-items: center; }
   #copyBtn.copied { background: var(--accent); color: #fff; }
+  #copyBtn.blocked { background: #dc2626; color: #fff; }
   #output {
     width: 100%;
     min-height: 460px;
@@ -175,21 +178,21 @@
 
       <div class="yn">
         <div>
-          <label>Data correction needed</label>
+          <label>Data correction needed <span class="req">*</span></label>
           <div class="seg" role="radiogroup">
             <label><input type="radio" name="dataCorr" value="Yes" /><span>Yes</span></label>
             <label><input type="radio" name="dataCorr" value="No" /><span>No</span></label>
           </div>
         </div>
         <div>
-          <label>Repeatable issue</label>
+          <label>Repeatable issue <span class="req">*</span></label>
           <div class="seg" role="radiogroup">
             <label><input type="radio" name="repeatable" value="Yes" /><span>Yes</span></label>
             <label><input type="radio" name="repeatable" value="No" /><span>No</span></label>
           </div>
         </div>
         <div>
-          <label>Repeatable in sandbox</label>
+          <label>Repeatable in sandbox <span class="req">*</span></label>
           <div class="seg" role="radiogroup">
             <label><input type="radio" name="repeatSandbox" value="Yes" /><span>Yes</span></label>
             <label><input type="radio" name="repeatSandbox" value="No" /><span>No</span></label>
@@ -533,11 +536,11 @@
       L.push("");
     }
 
-    section("", [
-      checked("dataCorr") && "Data Correction needed: " + checked("dataCorr"),
-      checked("repeatable") && "Repeatable Issue: " + checked("repeatable"),
-      checked("repeatSandbox") && "Repeatable Issue in Sandbox: " + checked("repeatSandbox")
-    ]);
+    // Required Yes/No answers: always shown, blank until selected.
+    L.push("Data Correction needed: " + checked("dataCorr"));
+    L.push("Repeatable Issue: " + checked("repeatable"));
+    L.push("Repeatable Issue in Sandbox: " + checked("repeatSandbox"));
+    L.push("");
 
     section("", [
       val("testedOrgId") && "Tested Org ID: " + val("testedOrgId"),
@@ -601,10 +604,32 @@
     out.value = L.join("\n");
   }
 
+  // Yes/No questions that must be answered before a Bug / Dev Task can be copied.
+  var REQUIRED = ["dataCorr", "repeatable", "repeatSandbox"];
+  function segFor(name) { return form.querySelector('input[name="' + name + '"]').closest(".seg"); }
+  function missingRequired() {
+    if (checked("ttype") === "Escalation") return [];
+    return REQUIRED.filter(function (n) { return !checked(n); });
+  }
+
   form.addEventListener("input", build);
-  form.addEventListener("change", function () { syncType(); build(); });
+  form.addEventListener("change", function () {
+    REQUIRED.forEach(function (n) { if (checked(n)) segFor(n).classList.remove("missing"); });
+    syncType();
+    build();
+  });
 
   $("copyBtn").addEventListener("click", function () {
+    var missing = missingRequired();
+    if (missing.length) {
+      var btn = $("copyBtn");
+      missing.forEach(function (n) { segFor(n).classList.add("missing"); });
+      segFor(missing[0]).scrollIntoView({ behavior: "smooth", block: "center" });
+      btn.classList.add("blocked");
+      btn.textContent = "Answer required fields";
+      setTimeout(function () { btn.classList.remove("blocked"); btn.textContent = "Copy"; }, 2000);
+      return;
+    }
     var done = function () {
       var b = $("copyBtn");
       b.classList.add("copied");
@@ -630,6 +655,7 @@
     form.reset();
     form.querySelector('input[name="ttype"][value="' + type + '"]').checked = true;
     Array.prototype.forEach.call(document.querySelectorAll(".collapsible-body"), function (b) { b.classList.add("hidden"); });
+    Array.prototype.forEach.call(document.querySelectorAll(".seg.missing"), function (s) { s.classList.remove("missing"); });
     syncType();
     build();
   });
