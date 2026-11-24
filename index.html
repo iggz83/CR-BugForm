@@ -453,6 +453,13 @@
     $("scopeWrap").style.display = (type === "Bug") ? "" : "none";
     $("providerFieldset").style.display = (type === "Dev Task") ? "" : "none";
     $("vipWrap").style.display = (type === "Dev Task") ? "" : "none";
+    // The Yes/No questions are only required on Bugs.
+    Array.prototype.forEach.call(document.querySelectorAll(".yn .req"), function (s) {
+      s.style.display = (type === "Bug") ? "" : "none";
+    });
+    if (type !== "Bug") {
+      Array.prototype.forEach.call(document.querySelectorAll(".yn .seg.missing"), function (s) { s.classList.remove("missing"); });
+    }
   }
 
   function build() {
@@ -539,11 +546,14 @@
       L.push("");
     }
 
-    // Required Yes/No answers: always shown, blank until selected.
-    L.push("Data Correction needed: " + checked("dataCorr"));
-    L.push("Repeatable Issue: " + checked("repeatable"));
-    L.push("Repeatable Issue in Sandbox: " + checked("repeatSandbox"));
-    L.push("");
+    // Yes/No answers: required on Bugs (always shown, blank until selected);
+    // optional on Dev Tasks (shown only when answered).
+    var bugReq = type === "Bug";
+    section("", [
+      (bugReq || checked("dataCorr")) && "Data Correction needed: " + checked("dataCorr"),
+      (bugReq || checked("repeatable")) && "Repeatable Issue: " + checked("repeatable"),
+      (bugReq || checked("repeatSandbox")) && "Repeatable Issue in Sandbox: " + checked("repeatSandbox")
+    ]);
 
     section("", [
       val("testedOrgId") && "Tested Org ID: " + val("testedOrgId"),
@@ -607,11 +617,11 @@
     out.value = L.join("\n");
   }
 
-  // Yes/No questions that must be answered before a Bug / Dev Task can be copied.
+  // Yes/No questions that must be answered before a Bug can be copied.
   var REQUIRED = ["dataCorr", "repeatable", "repeatSandbox"];
   function segFor(name) { return form.querySelector('input[name="' + name + '"]').closest(".seg"); }
   function missingRequired() {
-    if (checked("ttype") === "Escalation") return [];
+    if (checked("ttype") !== "Bug") return [];
     return REQUIRED.filter(function (n) { return !checked(n); });
   }
 
